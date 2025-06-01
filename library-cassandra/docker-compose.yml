@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  cassandra-node1:
+    image: cassandra:4.0
+    container_name: cassandra-node1
+    ports:
+      - "9042:9042"
+    environment:
+      - CASSANDRA_CLUSTER_NAME=LibraryCluster
+      - CASSANDRA_SEEDS=cassandra-node1
+      - CASSANDRA_BROADCAST_ADDRESS=cassandra-node1
+    networks:
+      - cassandra-net
+
+  cassandra-node2:
+    image: cassandra:4.0
+    container_name: cassandra-node2
+    depends_on:
+      - cassandra-node1
+    environment:
+      - CASSANDRA_CLUSTER_NAME=LibraryCluster
+      - CASSANDRA_SEEDS=cassandra-node1
+      - CASSANDRA_BROADCAST_ADDRESS=cassandra-node2
+    networks:
+      - cassandra-net
+
+  cassandra-node3:
+    image: cassandra:4.0
+    container_name: cassandra-node3
+    depends_on:
+      - cassandra-node1
+    environment:
+      - CASSANDRA_CLUSTER_NAME=LibraryCluster
+      - CASSANDRA_SEEDS=cassandra-node1
+      - CASSANDRA_BROADCAST_ADDRESS=cassandra-node3
+    networks:
+      - cassandra-net
+
+networks:
+  cassandra-net:
