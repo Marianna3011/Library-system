@@ -42,6 +42,5 @@ def make_reservation(room_id, date, hour, user_id):
         batch.add(SimpleStatement("INSERT INTO reservations (room_id, date, hour, user_id, res_id) values (%s, %s, %s, %s, %s)"), (room_id, date, hour, user_id, uuid_from_time(time())))
         session.execute(batch)
 
-def cancel_reservations(toBeRemoved):
-    for reservation in toBeRemoved:
-        session.execute("DELETE FROM reservations where room_id = %s and date = %s and hour = %s", (int(reservation[0]), reservation[1], int(reservation[2])))
+def cancel_reservations(reservation):
+    session.execute("DELETE FROM reservations where room_id = %s and date = %s and hour = %s", (int(reservation[0]), reservation[1], int(reservation[2])))
