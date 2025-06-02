@@ -101,6 +101,18 @@ def on_reserve_click(room, hour):
             show_edit_fields()
             break
 
+def make_reservation(room, hour):
+    selected_date = get_selected_date()
+    user_id = 1# make a pop up with a place to put user id
+    try:
+        utils.make_reservation(room, selected_date, hour, user_id)
+        result_box.delete("1.0", tk.END)
+        result_box.insert(tk.END, f"Reserved Room {room} on {selected_date} at {hour}:00\n")
+        load_matrix()
+    except Exception as e:
+        result_box.delete("1.0", tk.END)
+        result_box.insert(tk.END, f"Error: {e}\n")
+
 def update_reservation():
     global selected_group
     try:
