@@ -49,7 +49,6 @@ def load_matrix():
         groups = grouped_by_room[room]
         group_idx = 0
         while hour <= HOURS[-1]:
-            
             if group_idx < len(groups) and groups[group_idx][1] == hour:
                 user_id, start, end = groups[group_idx]
                 span = end - start + 1
@@ -57,7 +56,7 @@ def load_matrix():
                     matrix_frame,
                     bg="cornflower blue",
                     width=8 * span,
-                    text="",  
+                    text="",
                     command=lambda r=room, h=start: on_reserve_click(r, h)
                 )
                 btn.grid(row=i+1, column=col, columnspan=span, padx=1, pady=1, sticky="nsew")
@@ -65,11 +64,18 @@ def load_matrix():
                 col += span
                 group_idx += 1
             else:
-                # Free slot
-                lbl = tk.Label(matrix_frame, bg="light gray", width=8, text="") 
-                lbl.grid(row=i+1, column=col, padx=1, pady=1, sticky="nsew")
+                # Free slot — replace this with button that reserves
+                btn = tk.Button(
+                    matrix_frame,
+                    bg="light gray",
+                    width=8,
+                    text="",
+                    command=lambda r=room, h=hour: make_reservation(r, h)
+                )
+                btn.grid(row=i+1, column=col, padx=1, pady=1, sticky="nsew")
                 hour += 1
                 col += 1
+
 
 def on_reserve_click(room, hour):
     global selected_group
@@ -101,6 +107,42 @@ def on_reserve_click(room, hour):
             show_edit_fields()
             break
 
+def make_reservation(room, hour):
+    selected_date = get_selected_date()
+    user_id = int(prompt_for_user_id())
+    while user_id is None:
+        return
+    try:
+        utils.make_reservation(room, selected_date, hour, user_id)
+        result_box.delete("1.0", tk.END)
+        result_box.insert(tk.END, f"Reserved Room {room} on {selected_date} at {hour}:00\n")
+        load_matrix()
+    except Exception as e:
+        result_box.delete("1.0", tk.END)
+        result_box.insert(tk.END, f"Error: {e}\n")
+
+def prompt_for_user_id():
+    popup = tk.Toplevel(app)
+    popup.title("Enter User ID for the reservation")
+    tk.Label(popup, text="User ID for the reservation:").pack(pady=5)
+    user_id_entry = tk.Entry(popup)
+    user_id_entry.pack(pady=5)
+
+    result = {"user_id": None}
+
+    def submit():
+        try:
+            result["user_id"] = int(user_id_entry.get())
+            popup.destroy()
+        except ValueError:
+            tk.Label(popup, text="Please enter a valid number.", fg="red").pack()
+
+    tk.Button(popup, text="Submit", command=submit).pack(pady=5)
+    popup.grab_set()
+    app.wait_window(popup)
+    return result["user_id"]
+
+
 def update_reservation():
     global selected_group
     try:
@@ -131,6 +173,14 @@ def update_reservation():
 
     result_box.delete("1.0", tk.END)
     result_box.insert(tk.END, "Reservation updated.\n")
+    load_matrix()
+
+def cancel_reservation():
+    global selected_group
+    utils.cancel_reservations([selected_group['room'], selected_group['date'], selected_group['start_hour']])
+    result_box.delete("1.0", tk.END)
+    result_box.insert(tk.END, f"Reservation of room {selected_group['room']} at {selected_group['start_hour']}:00 hour has been canceled.\n")
+    hide_edit_fields()
     load_matrix()
 
 def show_matrix_for_date():
@@ -180,6 +230,8 @@ start_hour_entry = tk.Entry(app)
 end_hour_label = tk.Label(app, text="End Hour (9–16)")
 end_hour_entry = tk.Entry(app)
 update_btn = tk.Button(app, text="Update Reservation", command=update_reservation)
+cancel_btn = tk.Button(app, text="Cancel Reservation", command=cancel_reservation)
+
 
 def show_edit_fields():
     room_label.pack()
@@ -191,6 +243,7 @@ def show_edit_fields():
     end_hour_label.pack()
     end_hour_entry.pack()
     update_btn.pack()
+    cancel_btn.pack()
 
 def hide_edit_fields():
     room_label.pack_forget()
@@ -202,6 +255,7 @@ def hide_edit_fields():
     end_hour_label.pack_forget()
     end_hour_entry.pack_forget()
     update_btn.pack_forget()
+    cancel_btn.pack_forget()
 
 hide_edit_fields()
 
