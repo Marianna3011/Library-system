@@ -1,23 +1,25 @@
-from cassandra.cluster import Cluster
+from backend import utils
 import uuid
-from datetime import date
+from datetime import datetime, timedelta
+import random
 
-cluster = Cluster(['localhost'])
-session = cluster.connect('library') 
+ROOMS = [1, 2, 3, 4, 5]
+USERS = list(range(1001, 1201))  # 200 unique users
+HOURS = list(range(8, 16))       # 8:00 to 15:00
+DAYS = 30
 
-room_id = 1
-user_id = 42
-sample_date = date.today().isoformat()
-hours = [8, 9, 10]
+today = datetime.today()
 
-for hour in hours:
-    res_id = uuid.uuid4()
-    session.execute(
-        """
-        INSERT INTO reservations (room_id, date, hour, user_id, res_id)
-        VALUES (%s, %s, %s, %s, %s)
-        """,
-        (room_id, sample_date, hour, user_id, res_id)
-    )
-
-print(f"Sample grouped reservation for user {user_id} in room {room_id} inserted for hours {hours}.")
+count = 0
+for room in ROOMS:
+    for day_offset in range(DAYS):
+        date_str = (today + timedelta(days=day_offset)).strftime("%Y-%m-%d")
+        user_id = random.choice(USERS)
+        max_length = len(HOURS)
+        length = random.randint(1, max_length)
+        start_hour = random.choice(HOURS[:-(length-1) or None])  # Ensure it fits in the day
+        for h in range(start_hour, start_hour + length):
+            res_id = uuid.uuid4()
+            success = utils.insert_reservation(room, date_str, h, user_id, res_id)
+            if success:
+                count += 1
