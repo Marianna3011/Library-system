@@ -13,6 +13,25 @@ def get_reservations(room_id, date):
         print(f"Error getting reservations: {e}")
         return False
 
+def check_next(room_id, date, hour, user_id):
+    try:
+        reservations = 1
+        hour += 1
+        query = "SELECT user_id FROM reservations WHERE room_id=%s AND date=%s AND hour=%s"
+        result = session.execute(query, (room_id, date, hour)).one()
+        us = result.user_id if result else None
+        while us == user_id:
+            reservations += 1
+            hour += 1
+            query = "SELECT * FROM reservations WHERE room_id=%s AND date=%s AND hour=%s"
+            result = session.execute(query, (room_id, date, hour)).one()
+            us = result.user_id if result else None
+
+        return reservations
+    except Exception as e:
+        print(f"Error checking next reservation: {e}")
+        return False
+
 def update_reservation(room_id, date, old_hour, new_hour):
     try:
         query = "SELECT * FROM reservations WHERE room_id=%s AND date=%s AND hour=%s"

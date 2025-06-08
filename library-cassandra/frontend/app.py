@@ -2,11 +2,18 @@ import tkinter as tk
 from backend import utils
 from datetime import date, datetime
 from tkcalendar import DateEntry
+import tkinter.ttk as ttk
 
 app = tk.Tk() 
 
 ROOMS = [1, 2, 3, 4, 5]
 HOURS = list(range(8, 16))  
+
+style = ttk.Style()
+style.theme_use('clam')  # Try 'clam' or another theme
+style.configure('Reserved.TButton', background='cornflower blue')
+style.configure('Free.TButton', background='light gray')
+
 
 def get_selected_date():
     try:
@@ -57,9 +64,9 @@ def load_matrix():
                 if group_idx < len(groups) and groups[group_idx][1] == hour:
                     user_id, start, end = groups[group_idx]
                     span = end - start + 1
-                    btn = tk.Button(
+                    btn = ttk.Button(
                         matrix_frame,
-                        bg="cornflower blue",
+                        style='Reserved.TButton',
                         width=8 * span,
                         text="",
                         command=lambda r=room, h=start: on_reserve_click(r, h)
@@ -69,10 +76,9 @@ def load_matrix():
                     col += span
                     group_idx += 1
                 else:
-                    # Free slot — replace this with button that reserves
-                    btn = tk.Button(
+                    btn = ttk.Button(
                         matrix_frame,
-                        bg="light gray",
+                        style='Free.TButton',
                         width=8,
                         text="",
                         command=lambda r=room, h=hour: make_reservation(r, h)
@@ -208,7 +214,9 @@ def update_reservation():
 def cancel_reservation():
     try:
         global selected_group
-        utils.cancel_reservations([selected_group['room'], selected_group['date'], selected_group['start_hour']])
+        no_res = utils.check_next(selected_group['room'], selected_group['date'], selected_group['start_hour'], selected_group['user_id'])
+        for i in range(no_res):
+            utils.cancel_reservations([selected_group['room'], selected_group['date'], selected_group['start_hour']+i])
         result_box.delete("1.0", tk.END)
         result_box.insert(tk.END, f"Reservation of room {selected_group['room']} at {selected_group['start_hour']}:00 hour has been canceled.\n")
         hide_edit_fields()
