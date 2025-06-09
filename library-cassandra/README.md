@@ -6,6 +6,6 @@ Allows to make reservations, see information about them and cancel them. Provide
 
 ### How to run?
 
-- Go to a directory containing "frontend" directory
+- Go to a directory containing "frontend" directory (library-cassandra)
 - Run with command: python -m frontend.app
 - Needed dependencies are listed in requirements.txt file
