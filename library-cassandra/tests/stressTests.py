@@ -15,9 +15,10 @@ hours = range(8, 15)
 def test1():
     def rapid_request(user_id, room, date):
         passed = True
+        i = 0
         for hour in range(8, 15):
             try:
-                utils.make_reservation(room, date, hour, user_id)
+                utils.make_reservation(room, date, 8, user_id)
             except Exception as e:
                 print(f"Failed at hour {hour}: {e}")
                 print("Test 1 failed :(")
